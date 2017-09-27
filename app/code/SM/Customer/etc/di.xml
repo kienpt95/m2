@@ -1,0 +1,7 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\Customer\Controller\Account\CreatePost" type="SM\Customer\Controller\Account\CreatePost" />
+    <preference for="Magento\Customer\Model\CustomerExtractor" type="SM\Customer\Model\CustomerExtractor" />
+    <preference for="Magento\Customer\Model\Data\Customer" type="SM\Customer\Model\Data\Customer" />
+    <preference for="Magento\Customer\Model\ResourceModel\CustomerRepository" type="SM\Customer\Model\ResourceModel\CustomerRepository" />
+    <preference for="Magento\Customer\Model\ResourceModel\Customer" type="SM\Customer\Model\ResourceModel\Customer" />
+</config>
