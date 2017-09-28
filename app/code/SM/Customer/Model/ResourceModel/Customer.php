@@ -14,6 +14,54 @@ use Magento\Framework\Exception\AlreadyExistsException;
 
 class Customer extends \Magento\Customer\Model\ResourceModel\Customer
 {
+    /**
+     * Load customer by email or telephone
+     *
+     * @param \Magento\Customer\Model\Customer $customer
+     * @param string $email
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function loadByEmail(\Magento\Customer\Model\Customer $customer, $email)
+    {
+        $connection = $this->getConnection();
+        $bind = ['customer_email' => $email];
+        $select = $connection->select()->from(
+            $this->getEntityTable(),
+            [$this->getEntityIdField()]
+        )->where(
+            'email = :customer_email'
+        )->orWhere(
+            'telephone = :customer_email' // <~ customize
+        );
+
+        if ($customer->getSharingConfig()->isWebsiteScope()) {
+            if (!$customer->hasData('website_id')) {
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('A customer website ID must be specified when using the website scope.')
+                );
+            }
+            $bind['website_id'] = (int)$customer->getWebsiteId();
+            $select->where('website_id = :website_id');
+        }
+
+        $customerId = $connection->fetchOne($select, $bind);
+        if ($customerId) {
+            $this->load($customer, $customerId);
+        } else {
+            $customer->setData([]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Validate email and telephone before save new user
+     * @param \Magento\Framework\DataObject $customer
+     * @return $this
+     * @throws AlreadyExistsException
+     * @throws ValidatorException
+     */
     protected function _beforeSave(\Magento\Framework\DataObject $customer)
     {
         /** @var \Magento\Customer\Model\Customer $customer */
@@ -58,6 +106,11 @@ class Customer extends \Magento\Customer\Model\ResourceModel\Customer
         return $this;
     }
 
+    /**
+     * validate customer by phone number
+     * @param $customer
+     * @return string
+     */
     public function checkPhone($customer){
         $connection = $this->getConnection();
         $bind = ['telephone' => $customer->getTelephone()];
@@ -71,6 +124,11 @@ class Customer extends \Magento\Customer\Model\ResourceModel\Customer
         return $connection->fetchOne($select, $bind);
     }
 
+    /**
+     * validate by email
+     * @param $customer
+     * @return string
+     */
     public function checkEmail($customer){
         $connection = $this->getConnection();
         $bind = ['email' => $customer->getEmail()];
